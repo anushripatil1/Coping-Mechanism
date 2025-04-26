@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Coping Mechanism Advisor</title>
+</head>
+<body>
+    <h1>Coping Mechanism Chatbot</h1>
+    
+    <label>Enter your stressor:</label>
+    <input id="stressor" type="text"><br><br>
+
+    <label>Enter your emotion:</label>
+    <input id="emotion" type="text"><br><br>
+
+    <button onclick="askBot()">Get Suggestion</button>
+
+    <h2>Suggestion:</h2>
+    <p id="suggestion"></p>
+
+    <script>
+        async function askBot() {
+            const stressor = document.getElementById('stressor').value;
+            const emotion = document.getElementById('emotion').value;
+
+            const response = await fetch('http://localhost:5000/get_suggestion', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stressor, emotion })
+            });
+
+            const data = await response.json();
+            document.getElementById('suggestion').innerText = data.suggestion;
+        }
+    </script>
+</body>
+</html>
