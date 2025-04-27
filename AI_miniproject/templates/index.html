@@ -3,34 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <title>Coping Mechanism Advisor</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #a8edea, #fed6e3);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            width: 90%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 16px;
+            color: #555;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            background-color: #f9f9f9;
+        }
+
+        select:focus, input[type="text"]:focus {
+            border-color: #7b2cbf;
+            outline: none;
+            background-color: white;
+        }
+
+        button {
+            background-color: #7b2cbf;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #5a189a;
+        }
+
+        .result-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result-section h2 {
+            margin-top: 0;
+            font-size: 22px;
+            color: #444;
+        }
+
+        .suggestion-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .suggestion-item {
+            font-size: 18px;
+            color: #555;
+            line-height: 1.5;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading:after {
+            content: ' .';
+            animation: dots 1s steps(5, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: ' .'; }
+            40% { content: ' ..'; }
+            60% { content: ' ...'; }
+            80%, 100% { content: ' .'; }
+        }
+    </style>
 </head>
 <body>
-    <h1>Coping Mechanism Chatbot</h1>
-    
-    <label>Enter your stressor:</label>
-    <input id="stressor" type="text"><br><br>
+    <div class="container">
+        <h1>Coping Mechanism Advisor</h1>
+        
+        <div class="form-group">
+            <label for="emotion">How are you feeling?</label>
+            <select id="emotion" required>
+                <option value="">Select your emotion</option>
+                <option value="mild_anxiety">Mild Anxiety</option>
+                <option value="moderate_anxiety">Moderate Anxiety</option>
+                <option value="severe_anxiety">Severe Anxiety</option>
+                <option value="mild_sadness">Mild Sadness</option>
+                <option value="moderate_sadness">Moderate Sadness</option>
+                <option value="severe_sadness">Severe Sadness</option>
+                <option value="overwhelmed">Overwhelmed</option>
+                <option value="angry">Angry</option>
+                <option value="frustrated">Frustrated</option>
+                <option value="hopeless">Hopeless</option>
+            </select>
+        </div>
 
-    <label>Enter your emotion:</label>
-    <input id="emotion" type="text"><br><br>
+        <div class="form-group">
+            <label for="stressor">What's causing your stress?</label>
+            <select id="stressor" required>
+                <option value="">Select your stressor</option>
+                <option value="work">Work</option>
+                <option value="exams">Exams</option>
+                <option value="relationships">Relationships</option>
+                <option value="financial">Financial</option>
+                <option value="health">Health</option>
+                <option value="family">Family</option>
+                <option value="social">Social</option>
+                <option value="environmental">Environmental</option>
+            </select>
+        </div>
 
-    <button onclick="askBot()">Get Suggestion</button>
+        <div class="form-group">
+            <label for="physical">Are you experiencing any physical symptoms?</label>
+            <select id="physical" required>
+                <option value="none">None</option>
+                <option value="headache">Headache</option>
+                <option value="insomnia">Insomnia</option>
+                <option value="fatigue">Fatigue</option>
+                <option value="tension">Tension</option>
+            </select>
+        </div>
 
-    <h2>Suggestion:</h2>
-    <p id="suggestion"></p>
+        <div class="form-group">
+            <label for="time">What time of day is it?</label>
+            <select id="time" required>
+                <option value="morning">Morning</option>
+                <option value="afternoon">Afternoon</option>
+                <option value="evening">Evening</option>
+                <option value="night">Night</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="support">Do you have someone to talk to right now?</label>
+            <select id="support" required>
+                <option value="available">Yes</option>
+                <option value="unavailable">No</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="environment">Where are you right now?</label>
+            <select id="environment" required>
+                <option value="home">At Home</option>
+                <option value="workplace">At Work</option>
+                <option value="public">In Public</option>
+                <option value="private">In Private</option>
+            </select>
+        </div>
+
+        <button onclick="askBot()">Get Coping Suggestions</button>
+        
+        <div class="loading" id="loading">Analyzing your situation</div>
+
+        <div class="result-section" id="result-section">
+            <h2>Suggested Coping Mechanisms:</h2>
+            <ul class="suggestion-list" id="suggestions"></ul>
+        </div>
+    </div>
 
     <script>
         async function askBot() {
-            const stressor = document.getElementById('stressor').value;
+            // Show loading indicator
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result-section').style.display = 'none';
+
             const emotion = document.getElementById('emotion').value;
+            const stressor = document.getElementById('stressor').value;
+            const physical = document.getElementById('physical').value;
+            const time = document.getElementById('time').value;
+            const support = document.getElementById('support').value;
+            const environment = document.getElementById('environment').value;
 
-            const response = await fetch('http://localhost:5000/get_suggestion', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ stressor, emotion })
-            });
+            try {
+                const response = await fetch('http://localhost:5000/get_suggestion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        emotion,
+                        stressor,
+                        physical,
+                        time,
+                        support,
+                        environment
+                    })
+                });
 
-            const data = await response.json();
-            document.getElementById('suggestion').innerText = data.suggestion;
+                const data = await response.json();
+                
+                // Hide loading indicator
+                document.getElementById('loading').style.display = 'none';
+                
+                // Show result
+                document.getElementById('result-section').style.display = 'block';
+                
+                // Clear previous suggestions
+                const suggestionsList = document.getElementById('suggestions');
+                suggestionsList.innerHTML = '';
+                
+                // Add new suggestions
+                data.suggestions.forEach(suggestion => {
+                    const li = document.createElement('li');
+                    li.className = 'suggestion-item';
+                    li.textContent = suggestion.replace(/_/g, ' ');
+                    suggestionsList.appendChild(li);
+                });
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('result-section').style.display = 'block';
+                document.getElementById('suggestions').innerHTML = 
+                    '<li class="suggestion-item">Sorry, there was an error getting your suggestions. Please try again.</li>';
+            }
         }
     </script>
 </body>

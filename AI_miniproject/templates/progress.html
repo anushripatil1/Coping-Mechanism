@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Progress - Coping Mechanism Advisor{% endblock %}
+
+{% block content %}
+<div class="progress-container">
+    <h1>Your Progress Overview</h1>
+    
+    <div class="filters">
+        <div class="form-group">
+            <label for="emotion-filter">Filter by Emotion:</label>
+            <select id="emotion-filter">
+                <option value="">All Emotions</option>
+                <option value="mild_anxiety">Mild Anxiety</option>
+                <option value="moderate_anxiety">Moderate Anxiety</option>
+                <option value="severe_anxiety">Severe Anxiety</option>
+                <option value="mild_sadness">Mild Sadness</option>
+                <option value="moderate_sadness">Moderate Sadness</option>
+                <option value="severe_sadness">Severe Sadness</option>
+                <option value="overwhelmed">Overwhelmed</option>
+                <option value="angry">Angry</option>
+                <option value="frustrated">Frustrated</option>
+                <option value="hopeless">Hopeless</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="stressor-filter">Filter by Stressor:</label>
+            <select id="stressor-filter">
+                <option value="">All Stressors</option>
+                <option value="work">Work</option>
+                <option value="exams">Exams</option>
+                <option value="relationships">Relationships</option>
+                <option value="financial">Financial</option>
+                <option value="health">Health</option>
+                <option value="family">Family</option>
+                <option value="social">Social</option>
+                <option value="environmental">Environmental</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="date-filter">Filter by Date:</label>
+            <select id="date-filter">
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="progress-stats">
+        <div class="stat-card">
+            <h3>Average Effectiveness</h3>
+            <div class="stat-value">{{ average_effectiveness|round(1) }}/5</div>
+        </div>
+        <div class="stat-card">
+            <h3>Total Entries</h3>
+            <div class="stat-value">{{ total_entries }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>Most Common Emotion</h3>
+            <div class="stat-value">{{ most_common_emotion }}</div>
+        </div>
+    </div>
+
+    <div class="progress-list">
+        {% for entry in progress_data %}
+        <div class="progress-item" 
+             data-emotion="{{ entry.emotion }}"
+             data-stressor="{{ entry.stressor }}"
+             data-date="{{ entry.timestamp.strftime('%Y-%m-%d') }}">
+            <div class="progress-item-header">
+                <h3>{{ entry.emotion }} - {{ entry.stressor }}</h3>
+                <span class="timestamp">{{ entry.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+            </div>
+            
+            <div class="progress-item-rating">
+                <h4>Effectiveness Rating:</h4>
+                <div class="progress-bar">
+                    <div class="progress-fill" data-effectiveness="{{ entry.effectiveness }}"></div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if not progress_data %}
+    <div class="empty-state">
+        <p>No progress data found. Start by getting some coping suggestions!</p>
+        <a href="{{ url_for('dashboard') }}" class="btn">Get Suggestions</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const emotionFilter = document.getElementById('emotion-filter');
+        const stressorFilter = document.getElementById('stressor-filter');
+        const dateFilter = document.getElementById('date-filter');
+        const progressItems = document.querySelectorAll('.progress-item');
+
+        function filterProgress() {
+            const selectedEmotion = emotionFilter.value;
+            const selectedStressor = stressorFilter.value;
+            const selectedDate = dateFilter.value;
+            const today = new Date();
+            const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const oneMonthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+            progressItems.forEach(item => {
+                const emotion = item.dataset.emotion;
+                const stressor = item.dataset.stressor;
+                const date = new Date(item.dataset.date);
+                
+                let showItem = true;
+
+                if (selectedEmotion && emotion !== selectedEmotion) {
+                    showItem = false;
+                }
+
+                if (selectedStressor && stressor !== selectedStressor) {
+                    showItem = false;
+                }
+
+                if (selectedDate === 'today' && date.toDateString() !== today.toDateString()) {
+                    showItem = false;
+                } else if (selectedDate === 'week' && date < oneWeekAgo) {
+                    showItem = false;
+                } else if (selectedDate === 'month' && date < oneMonthAgo) {
+                    showItem = false;
+                }
+
+                item.style.display = showItem ? 'block' : 'none';
+            });
+        }
+
+        // Initialize progress bars
+        document.querySelectorAll('.progress-fill').forEach(bar => {
+            const effectiveness = bar.dataset.effectiveness;
+            bar.style.width = `${effectiveness * 20}%`;
+        });
+
+        emotionFilter.addEventListener('change', filterProgress);
+        stressorFilter.addEventListener('change', filterProgress);
+        dateFilter.addEventListener('change', filterProgress);
+    });
+</script>
+{% endblock %} 
