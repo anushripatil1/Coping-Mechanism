@@ -89,21 +89,10 @@
             color: #444;
         }
 
-        .suggestion-list {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .suggestion-item {
+        #suggestion {
             font-size: 18px;
             color: #555;
             line-height: 1.5;
-            padding: 10px;
-            margin: 10px 0;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .loading {
@@ -200,13 +189,23 @@
             </select>
         </div>
 
-        <button onclick="askBot()">Get Coping Suggestions</button>
+        <div class="form-group">
+            <label for="preference">What type of activity do you prefer?</label>
+            <select id="preference" required>
+                <option value="active">Active (Exercise, Movement)</option>
+                <option value="passive">Passive (Meditation, Relaxation)</option>
+                <option value="social">Social (Talking, Group Activities)</option>
+                <option value="solitary">Solitary (Alone Time, Journaling)</option>
+            </select>
+        </div>
+
+        <button onclick="askBot()">Get Coping Suggestion</button>
         
         <div class="loading" id="loading">Analyzing your situation</div>
 
         <div class="result-section" id="result-section">
-            <h2>Suggested Coping Mechanisms:</h2>
-            <ul class="suggestion-list" id="suggestions"></ul>
+            <h2>Suggested Coping Mechanism:</h2>
+            <p id="suggestion"></p>
         </div>
     </div>
 
@@ -222,6 +221,7 @@
             const time = document.getElementById('time').value;
             const support = document.getElementById('support').value;
             const environment = document.getElementById('environment').value;
+            const preference = document.getElementById('preference').value;
 
             try {
                 const response = await fetch('http://localhost:5000/get_suggestion', {
@@ -233,7 +233,8 @@
                         physical,
                         time,
                         support,
-                        environment
+                        environment,
+                        preference
                     })
                 });
 
@@ -244,23 +245,11 @@
                 
                 // Show result
                 document.getElementById('result-section').style.display = 'block';
-                
-                // Clear previous suggestions
-                const suggestionsList = document.getElementById('suggestions');
-                suggestionsList.innerHTML = '';
-                
-                // Add new suggestions
-                data.suggestions.forEach(suggestion => {
-                    const li = document.createElement('li');
-                    li.className = 'suggestion-item';
-                    li.textContent = suggestion.replace(/_/g, ' ');
-                    suggestionsList.appendChild(li);
-                });
+                document.getElementById('suggestion').innerText = data.suggestion;
             } catch (error) {
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('result-section').style.display = 'block';
-                document.getElementById('suggestions').innerHTML = 
-                    '<li class="suggestion-item">Sorry, there was an error getting your suggestions. Please try again.</li>';
+                document.getElementById('suggestion').innerText = 'Sorry, there was an error getting your suggestion. Please try again.';
             }
         }
     </script>

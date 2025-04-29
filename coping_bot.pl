@@ -64,36 +64,39 @@ coping(time_management, practical).
 coping(problem_solving, practical).
 
 % Rules for suggesting coping mechanisms based on multiple factors
-suggest_coping(severe_anxiety, _, Physical, _, _, _, [deep_breathing, progressive_muscle_relaxation]) :-
-    Physical \= none.
-
-suggest_coping(moderate_anxiety, _, _, _, _, public, [grounding_exercises, deep_breathing]).
-
-suggest_coping(Emotion, _, _, _, available, _, [talking_to_friend, journaling]) :-
-    member(Emotion, [mild_sadness, moderate_sadness]).
-
-suggest_coping(overwhelmed, _, _, _, _, private, [meditation, journaling]).
-
-suggest_coping(_, work, _, _, _, _, [time_management, exercise]).
-
-suggest_coping(_, exams, _, evening, _, _, [progressive_muscle_relaxation, meditation]).
-
-suggest_coping(_, _, Physical, _, _, _, [deep_breathing, progressive_muscle_relaxation]) :-
-    Physical \= none.
-
-suggest_coping(_, _, _, _, available, public, [talking_to_friend, grounding_exercises]).
-
-suggest_coping(_, _, _, morning, _, _, [exercise, meditation]).
-
-suggest_coping(_, _, _, night, _, _, [progressive_muscle_relaxation, journaling]).
-
-% Default case - if no other rules match
-suggest_coping(_, _, _, _, _, _, [deep_breathing, journaling]).
+suggestion(Emotion, Stressor, Physical, Time, Support, Environment, Preference, Coping) :-
+    % For severe anxiety with physical symptoms
+    (Emotion = severe_anxiety, Physical \= none) ->
+        (Coping = deep_breathing; Coping = progressive_muscle_relaxation);
+    
+    % For moderate anxiety in social situations
+    (Emotion = moderate_anxiety, Environment = public) ->
+        (Coping = grounding_exercises; Coping = deep_breathing);
+    
+    % For sadness with available support
+    (member(Emotion, [mild_sadness, moderate_sadness]), Support = available) ->
+        (Coping = talking_to_friend; Coping = journaling);
+    
+    % For overwhelming feelings in private
+    (Emotion = overwhelmed, Environment = private) ->
+        (Coping = meditation; Coping = journaling);
+    
+    % For work-related stress with active preference
+    (Stressor = work, Preference = active) ->
+        (Coping = exercise; Coping = time_management);
+    
+    % For exam stress in the evening
+    (Stressor = exams, Time = evening) ->
+        (Coping = progressive_muscle_relaxation; Coping = meditation);
+    
+    % Default suggestions based on preferences
+    (Preference = active) -> Coping = exercise;
+    (Preference = passive) -> Coping = meditation;
+    (Preference = social) -> Coping = talking_to_friend;
+    (Preference = solitary) -> Coping = journaling.
 
 % Response Handler
-respond(Emotion, Stressor, Physical, Time, Support, Environment, Suggestions) :-
-    suggest_coping(Emotion, Stressor, Physical, Time, Support, Environment, Suggestions),
-    write(Suggestions), nl, !.
+respond(Emotion, Stressor, Physical, Time, Support, Environment, Preference, Suggestion) :-
+    suggestion(Emotion, Stressor, Physical, Time, Support, Environment, Preference, Suggestion), !.
 
-respond(_, _, _, _, _, _, [deep_breathing, 'talk_to_a_therapist']) :-
-    write([deep_breathing, 'talk_to_a_therapist']), nl.
+respond(_, _, _, _, _, _, _, 'talk_to_a_therapist').

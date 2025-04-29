@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Coping Mechanism Advisor{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="main-card">
+        <h1>Get Coping Suggestions</h1>
+        <form id="suggestion-form">
+            <div class="form-group">
+                <label for="emotion">How are you feeling?</label>
+                <select id="emotion" required>
+                    <option value="">Select your emotion</option>
+                    <option value="mild_anxiety">Mild Anxiety</option>
+                    <option value="moderate_anxiety">Moderate Anxiety</option>
+                    <option value="severe_anxiety">Severe Anxiety</option>
+                    <option value="mild_sadness">Mild Sadness</option>
+                    <option value="moderate_sadness">Moderate Sadness</option>
+                    <option value="severe_sadness">Severe Sadness</option>
+                    <option value="overwhelmed">Overwhelmed</option>
+                    <option value="angry">Angry</option>
+                    <option value="frustrated">Frustrated</option>
+                    <option value="hopeless">Hopeless</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="stressor">What's causing your stress?</label>
+                <select id="stressor" required>
+                    <option value="">Select your stressor</option>
+                    <option value="work">Work</option>
+                    <option value="exams">Exams</option>
+                    <option value="relationships">Relationships</option>
+                    <option value="financial">Financial</option>
+                    <option value="health">Health</option>
+                    <option value="family">Family</option>
+                    <option value="social">Social</option>
+                    <option value="environmental">Environmental</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="physical">Are you experiencing any physical symptoms?</label>
+                <select id="physical" required>
+                    <option value="none">None</option>
+                    <option value="headache">Headache</option>
+                    <option value="insomnia">Insomnia</option>
+                    <option value="fatigue">Fatigue</option>
+                    <option value="tension">Tension</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="time">What time of day is it?</label>
+                <select id="time" required>
+                    <option value="morning">Morning</option>
+                    <option value="afternoon">Afternoon</option>
+                    <option value="evening">Evening</option>
+                    <option value="night">Night</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="support">Do you have someone to talk to right now?</label>
+                <select id="support" required>
+                    <option value="available">Yes</option>
+                    <option value="unavailable">No</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="environment">Where are you right now?</label>
+                <select id="environment" required>
+                    <option value="home">At Home</option>
+                    <option value="workplace">At Work</option>
+                    <option value="public">In Public</option>
+                    <option value="private">In Private</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn">Get Coping Suggestions</button>
+        </form>
+
+        <div class="loading" id="loading">Analyzing your situation</div>
+
+        <div class="result-section" id="result-section">
+            <h3>Suggested Coping Mechanisms:</h3>
+            <ul class="suggestion-list" id="suggestions"></ul>
+            
+            <div class="form-group" style="margin-top: 20px;">
+                <label for="effectiveness">How effective were these suggestions?</label>
+                <select id="effectiveness">
+                    <option value="1">Not Effective</option>
+                    <option value="2">Somewhat Effective</option>
+                    <option value="3">Moderately Effective</option>
+                    <option value="4">Very Effective</option>
+                    <option value="5">Extremely Effective</option>
+                </select>
+                <button class="btn" onclick="saveProgress()">Save Progress</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="recent-history">
+        <h2>Recent History</h2>
+        <ul class="history-list">
+            {% for entry in recent_history %}
+            <li class="history-item">
+                <strong>Emotion:</strong> {{ entry.emotion }}<br>
+                <strong>Stressor:</strong> {{ entry.stressor }}<br>
+                <strong>Suggestions:</strong> {{ entry.suggestions }}<br>
+                <small>{{ entry.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+            </li>
+            {% endfor %}
+        </ul>
+        <div class="view-more">
+            <a href="{{ url_for('history') }}" class="btn btn-secondary">View Full History</a>
+            <a href="{{ url_for('progress') }}" class="btn btn-secondary">View Progress</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('suggestion-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const emotion = document.getElementById('emotion').value;
+        const stressor = document.getElementById('stressor').value;
+        const physical = document.getElementById('physical').value;
+        const time = document.getElementById('time').value;
+        const support = document.getElementById('support').value;
+        const environment = document.getElementById('environment').value;
+
+        // Show loading indicator
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('result-section').style.display = 'none';
+
+        try {
+            const response = await fetch('{{ url_for("get_suggestion") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    emotion,
+                    stressor,
+                    physical,
+                    time,
+                    support,
+                    environment
+                })
+            });
+
+            const data = await response.json();
+            
+            // Hide loading indicator
+            document.getElementById('loading').style.display = 'none';
+            
+            // Show result
+            document.getElementById('result-section').style.display = 'block';
+            
+            // Clear previous suggestions
+            const suggestionsList = document.getElementById('suggestions');
+            suggestionsList.innerHTML = '';
+            
+            // Add new suggestions
+            data.suggestions.forEach(suggestion => {
+                const li = document.createElement('li');
+                li.className = 'suggestion-item';
+                li.textContent = suggestion.replace(/_/g, ' ');
+                suggestionsList.appendChild(li);
+            });
+        } catch (error) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('result-section').style.display = 'block';
+            document.getElementById('suggestions').innerHTML = 
+                '<li class="suggestion-item">Sorry, there was an error getting your suggestions. Please try again.</li>';
+        }
+    });
+
+    async function saveProgress() {
+        const emotion = document.getElementById('emotion').value;
+        const stressor = document.getElementById('stressor').value;
+        const effectiveness = document.getElementById('effectiveness').value;
+
+        try {
+            const response = await fetch('{{ url_for("save_progress") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    emotion,
+                    stressor,
+                    effectiveness: parseInt(effectiveness)
+                })
+            });
+
+            const data = await response.json();
+            if (data.status === 'success') {
+                alert('Progress saved successfully!');
+                location.reload();
+            }
+        } catch (error) {
+            alert('Error saving progress. Please try again.');
+        }
+    }
+</script>
+{% endblock %} 
